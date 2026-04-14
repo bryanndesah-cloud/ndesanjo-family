@@ -30,11 +30,19 @@ body::before{content:'';position:fixed;inset:0;opacity:.015;background-image:url
 .auth-label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text-muted);margin-bottom:5px;}
 .auth-input{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:var(--bg-secondary);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:all .25s;-webkit-appearance:none;}
 .auth-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-glow);}
-.auth-error{font-size:12px;color:var(--accent);margin-bottom:12px;display:none;text-align:left;background:rgba(220,38,38,0.08);padding:8px 12px;border-radius:8px;}
+.auth-error{font-size:12px;color:var(--accent);margin-bottom:12px;display:none;text-align:left;background:rgba(220,38,38,0.08);padding:8px 12px;border-radius:8px;line-height:1.4;}
 .auth-error.show{display:block;}
-.auth-submit{width:100%;padding:13px;border:none;border-radius:12px;background:var(--primary);color:#fff;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .25s;-webkit-tap-highlight-color:transparent;margin-top:8px;}
-.auth-submit:hover{background:var(--accent);transform:translateY(-1px);box-shadow:0 6px 20px var(--primary-glow);}
-.auth-submit:active{transform:scale(.98);}
+.auth-error i{margin-right:6px;}
+.auth-submit{width:100%;padding:13px;border:none;border-radius:12px;background:var(--primary);color:#fff;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .25s;-webkit-tap-highlight-color:transparent;margin-top:8px;position:relative;overflow:hidden;}
+.auth-submit:hover:not(:disabled){background:var(--accent);transform:translateY(-1px);box-shadow:0 6px 20px var(--primary-glow);}
+.auth-submit:active:not(:disabled){transform:scale(.98);}
+.auth-submit:disabled{opacity:.65;cursor:not-allowed;transform:none !important;box-shadow:none !important;}
+.auth-submit .btn-text{transition:opacity .2s;}
+.auth-submit.loading .btn-text{opacity:0;}
+.auth-submit .btn-spinner{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;}
+.auth-submit.loading .btn-spinner{opacity:1;}
+.auth-submit .btn-spinner::after{content:'';width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
 .auth-hint{font-size:11px;color:var(--text-muted);margin-top:16px;line-height:1.5;}
 .auth-hint a{color:var(--primary);font-weight:600;text-decoration:none;}
 
@@ -241,7 +249,6 @@ body.dark .topnav{background:rgba(10,10,10,.88);}
 .lang-loading{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--card);border-radius:20px;padding:40px 50px;text-align:center;z-index:600;box-shadow:var(--shadow-lg);display:none;}
 .lang-loading.show{display:block;animation:fadeIn .2s ease;}
 .lang-loading .spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px;}
-@keyframes spin{to{transform:rotate(360deg)}}
 .lang-loading p{font-size:14px;font-weight:600;color:var(--text);}
 @media(max-width:700px){.logo{font-size:14px;}.logo-dot{width:6px;height:6px;}.visitor-badge{display:none;}.story-ring{width:56px;height:56px;}.story-ring-inner{font-size:20px;}.story-label{font-size:9px;}.stories{gap:10px;}.modal{flex-direction:column;max-height:95vh;border-radius:16px 16px 0 0;margin-top:auto;}.modal-image{width:100%;min-height:220px;max-height:280px;}.modal-content{min-height:0;}.modal-title{font-size:18px;}.modal-avatar{width:34px;height:34px;font-size:18px;}.fav-card{width:130px;}.fav-card-img,.fav-card-placeholder{height:130px;}.list-thumb,.list-thumb-placeholder{width:85px;height:85px;}.list-title{font-size:13px;}.fab{bottom:20px;right:20px;width:48px;height:48px;font-size:20px;}.nav-btn .lang-label{display:none;}.story-label{max-width:52px;}.user-badge{display:none;}.admin-panel{max-width:95vw;}.modal-stats-bar{padding:10px 16px;}.modal-footer{padding:10px 16px;}.comments-section{padding:12px 16px;}}
 @media(min-width:701px){.recipe-grid{gap:4px;}}
@@ -259,16 +266,16 @@ body.dark .topnav{background:rgba(10,10,10,.88);}
     <div class="auth-tabs"><button class="auth-tab active" onclick="switchAuthTab('login')" id="tabLogin">Login</button><button class="auth-tab" onclick="switchAuthTab('signup')" id="tabSignup">Sign Up</button></div>
     <div class="auth-error" id="authError"></div>
     <form class="auth-form active" id="loginForm" onsubmit="handleLogin(event)">
-        <div class="auth-field"><label class="auth-label">Username</label><input type="text" class="auth-input" id="loginUser" required autocomplete="username"></div>
-        <div class="auth-field"><label class="auth-label">Password</label><input type="password" class="auth-input" id="loginPass" required autocomplete="current-password"></div>
-        <button type="submit" class="auth-submit">Login</button>
+        <div class="auth-field"><label class="auth-label">Username</label><input type="text" class="auth-input" id="loginUser" required autocomplete="username" oninput="clearAuthError()"></div>
+        <div class="auth-field"><label class="auth-label">Password</label><input type="password" class="auth-input" id="loginPass" required autocomplete="current-password" oninput="clearAuthError()"></div>
+        <button type="submit" class="auth-submit" id="loginBtn"><span class="btn-text">Login</span><span class="btn-spinner"></span></button>
         <p class="auth-hint">Don't have an account? <a href="#" onclick="switchAuthTab('signup');return false;">Sign up</a></p>
     </form>
     <form class="auth-form" id="signupForm" onsubmit="handleSignup(event)">
-        <div class="auth-field"><label class="auth-label">Username</label><input type="text" class="auth-input" id="signupUser" required autocomplete="username" minlength="3" maxlength="30"></div>
-        <div class="auth-field"><label class="auth-label">Password</label><input type="password" class="auth-input" id="signupPass" required autocomplete="new-password" minlength="4"></div>
-        <div class="auth-field"><label class="auth-label">Confirm Password</label><input type="password" class="auth-input" id="signupConfirm" required autocomplete="new-password"></div>
-        <button type="submit" class="auth-submit">Create Account</button>
+        <div class="auth-field"><label class="auth-label">Username</label><input type="text" class="auth-input" id="signupUser" required autocomplete="username" minlength="3" maxlength="30" oninput="clearAuthError()"></div>
+        <div class="auth-field"><label class="auth-label">Password</label><input type="password" class="auth-input" id="signupPass" required autocomplete="new-password" minlength="4" oninput="clearAuthError()"></div>
+        <div class="auth-field"><label class="auth-label">Confirm Password</label><input type="password" class="auth-input" id="signupConfirm" required autocomplete="new-password" oninput="clearAuthError()"></div>
+        <button type="submit" class="auth-submit" id="signupBtn"><span class="btn-text">Create Account</span><span class="btn-spinner"></span></button>
         <p class="auth-hint">Already have an account? <a href="#" onclick="switchAuthTab('login');return false;">Login</a></p>
     </form>
 </div>
@@ -301,7 +308,6 @@ body.dark .topnav{background:rgba(10,10,10,.88);}
 <button class="fab" onclick="openAdd()"><i class="fa-solid fa-plus"></i></button>
 <div class="lang-loading" id="langLoading"><div class="spinner"></div><p id="langLoadingText">Translating...</p></div>
 
-<!-- ADMIN PANEL -->
 <div class="admin-panel-backdrop" id="adminBackdrop" onclick="closeAdmin(event)">
 <div class="admin-panel" onclick="event.stopPropagation()">
     <div class="admin-header">
@@ -359,10 +365,8 @@ var translationCache = {};
 try { translationCache = JSON.parse(localStorage.getItem('ndesanjo_translations')) || {}; } catch(e) {}
 var catValues = ['Breakfast', 'Lunch', 'Dinner', 'Dessert'];
 var categoryIcons = { all:'<i class="fa-solid fa-utensils"></i>', Breakfast:'<i class="fa-solid fa-egg"></i>', Lunch:'<i class="fa-solid fa-burger"></i>', Dinner:'<i class="fa-solid fa-bowl-food"></i>', Dessert:'<i class="fa-solid fa-cake-candles"></i>', Favorites:'<i class="fa-solid fa-heart"></i>' };
-var EMOJI_MAP = { Breakfast:'🍳', Lunch:'🥗', Dinner:'🍽️', Dessert:'🍰' };
-function getCatEmoji(c) { return EMOJI_MAP[c] || '🍽️'; }
-
-/* ===== UTILITY ===== */
+var EMOJI_MAP = { Breakfast:'\u{1F373}', Lunch:'\u{1F957}', Dinner:'\u{1F37D}\uFE0F', Dessert:'\u{1F370}' };
+function getCatEmoji(c) { return EMOJI_MAP[c] || '\u{1F37D}\uFE0F'; }
 function escHtml(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 function escAttr(s) { return s.replace(/'/g, '&#39;').replace(/"/g, '&quot;'); }
 function timeAgo(ts) { var s = Math.floor((Date.now() - ts) / 1000); if (s < 60) return 'just now'; if (s < 3600) return Math.floor(s / 60) + 'm ago'; if (s < 86400) return Math.floor(s / 3600) + 'h ago'; if (s < 604800) return Math.floor(s / 86400) + 'd ago'; return new Date(ts).toLocaleDateString(); }
@@ -370,15 +374,49 @@ function formatNum(n) { if (n >= 1000) return (n / 1000).toFixed(1) + 'k'; retur
 
 /* ===== AUTH ===== */
 var currentUser = null;
+var isAuthLoading = false;
 function isAdminUser() { return currentUser && currentUser.substring(0, 3) === '000'; }
 function getUsers() { try { return JSON.parse(localStorage.getItem('ndesanjo_users')) || []; } catch(e) { return []; } }
 function saveUsers(u) { try { localStorage.setItem('ndesanjo_users', JSON.stringify(u)); } catch(e) {} }
-
-/* FIX #1: Missing closing brace on getBanned */
 function getBanned() { try { return JSON.parse(localStorage.getItem('ndesanjo_banned')) || []; } catch(e) { return []; } }
 function saveBanned(b) { try { localStorage.setItem('ndesanjo_banned', JSON.stringify(b)); } catch(e) {} }
 
-async function hashPassword(pwd) { var enc = new TextEncoder(); return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', enc.encode(pwd)))).map(function(b) { return b.toString(16).padStart(2, '0'); }).join(''); }
+/* Hash function that works everywhere — fallback if crypto.subtle unavailable */
+function hashPassword(pwd) {
+    return new Promise(function(resolve) {
+        try {
+            if (window.crypto && window.crypto.subtle) {
+                var enc = new TextEncoder();
+                window.crypto.subtle.digest('SHA-256', enc.encode(pwd)).then(function(buf) {
+                    var arr = new Uint8Array(buf);
+                    var hex = '';
+                    for (var i = 0; i < arr.length; i++) hex += arr[i].toString(16).padStart(2, '0');
+                    resolve(hex);
+                }).catch(function() {
+                    resolve(fallbackHash(pwd));
+                });
+            } else {
+                resolve(fallbackHash(pwd));
+            }
+        } catch(e) {
+            resolve(fallbackHash(pwd));
+        }
+    });
+}
+
+/* Simple but decent fallback hash for non-HTTPS environments */
+function fallbackHash(str) {
+    var h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+    for (var i = 0; i < str.length; i++) {
+        var ch = str.charCodeAt(i);
+        h1 = Math.imul(h1 ^ ch, 2654435761);
+        h2 = Math.imul(h2 ^ ch, 1597334677);
+    }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    var combined = (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(16);
+    return combined.padStart(16, '0');
+}
 
 function checkSession() { try { var s = JSON.parse(localStorage.getItem('ndesanjo_session')); if (s && s.name) return true; } catch(e) {} return false; }
 function createSession(name) { currentUser = name; try { localStorage.setItem('ndesanjo_session', JSON.stringify({ name: name, ts: Date.now() })); } catch(e) {} }
@@ -389,42 +427,123 @@ function switchAuthTab(tab) {
     document.getElementById('signupForm').classList.toggle('active', tab === 'signup');
     document.getElementById('tabLogin').classList.toggle('active', tab === 'login');
     document.getElementById('tabSignup').classList.toggle('active', tab === 'signup');
-    document.getElementById('authError').classList.remove('show');
+    clearAuthError();
 }
-function showAuthError(msg) { var el = document.getElementById('authError'); el.textContent = msg; el.classList.add('show'); }
+function showAuthError(msg) {
+    var el = document.getElementById('authError');
+    el.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>' + msg;
+    el.classList.add('show');
+}
+function clearAuthError() { document.getElementById('authError').classList.remove('show'); }
+
+function setAuthLoading(btnId, loading) {
+    var btn = document.getElementById(btnId);
+    if (loading) { btn.classList.add('loading'); btn.disabled = true; }
+    else { btn.classList.remove('loading'); btn.disabled = false; }
+}
 
 async function handleSignup(e) {
     e.preventDefault();
+    if (isAuthLoading) return;
+
     var name = document.getElementById('signupUser').value.trim();
     var pass = document.getElementById('signupPass').value;
     var confirm = document.getElementById('signupConfirm').value;
+
     if (name.length < 3) { showAuthError('Username must be at least 3 characters'); return; }
     if (!/^[a-zA-Z0-9_]+$/.test(name)) { showAuthError('Username can only contain letters, numbers, and underscores'); return; }
     if (pass.length < 4) { showAuthError('Password must be at least 4 characters'); return; }
     if (pass !== confirm) { showAuthError('Passwords do not match'); return; }
-    var users = getUsers();
-    for (var i = 0; i < users.length; i++) { if (users[i].name.toLowerCase() === name.toLowerCase()) { showAuthError('Username already taken'); return; } }
-    var hash = await hashPassword(pass);
-    users.push({ name: name, hash: hash });
-    saveUsers(users);
-    createSession(name);
-    enterApp();
+
+    isAuthLoading = true;
+    setAuthLoading('signupBtn', true);
+
+    try {
+        var users = getUsers();
+        for (var i = 0; i < users.length; i++) {
+            if (users[i].name.toLowerCase() === name.toLowerCase()) {
+                showAuthError('Username "' + name + '" is already taken');
+                isAuthLoading = false;
+                setAuthLoading('signupBtn', false);
+                return;
+            }
+        }
+
+        var hash = await hashPassword(pass);
+        users.push({ name: name, hash: hash });
+        saveUsers(users);
+        createSession(name);
+        enterApp();
+    } catch(err) {
+        showAuthError('Something went wrong. Please try again.');
+        console.error('Signup error:', err);
+    }
+
+    isAuthLoading = false;
+    setAuthLoading('signupBtn', false);
 }
 
 async function handleLogin(e) {
     e.preventDefault();
+    if (isAuthLoading) return;
+
     var name = document.getElementById('loginUser').value.trim();
     var pass = document.getElementById('loginPass').value;
-    if (!name || !pass) { showAuthError('Please fill in all fields'); return; }
-    var users = getUsers();
-    var hash = await hashPassword(pass);
-    var found = false;
-    for (var i = 0; i < users.length; i++) { if (users[i].name.toLowerCase() === name.toLowerCase() && users[i].hash === hash) { found = true; break; } }
-    if (!found) { showAuthError('Invalid username or password'); return; }
-    var banned = getBanned();
-    for (var j = 0; j < banned.length; j++) { if (banned[j].name.toLowerCase() === name.toLowerCase()) { showAuthError('This account has been suspended'); return; } }
-    createSession(name);
-    enterApp();
+
+    if (!name) { showAuthError('Please enter your username'); return; }
+    if (!pass) { showAuthError('Please enter your password'); return; }
+
+    isAuthLoading = true;
+    setAuthLoading('loginBtn', true);
+
+    try {
+        /* First check if user exists at all */
+        var users = getUsers();
+        var foundUser = null;
+        for (var i = 0; i < users.length; i++) {
+            if (users[i].name.toLowerCase() === name.toLowerCase()) {
+                foundUser = users[i];
+                break;
+            }
+        }
+
+        if (!foundUser) {
+            showAuthError('No account found with username "' + name + '"');
+            isAuthLoading = false;
+            setAuthLoading('loginBtn', false);
+            return;
+        }
+
+        /* Now check password */
+        var hash = await hashPassword(pass);
+        if (foundUser.hash !== hash) {
+            showAuthError('Incorrect password. Please try again.');
+            isAuthLoading = false;
+            setAuthLoading('loginBtn', false);
+            return;
+        }
+
+        /* Check if banned */
+        var banned = getBanned();
+        for (var j = 0; j < banned.length; j++) {
+            if (banned[j].name.toLowerCase() === name.toLowerCase()) {
+                showAuthError('This account has been suspended by an admin');
+                isAuthLoading = false;
+                setAuthLoading('loginBtn', false);
+                return;
+            }
+        }
+
+        /* Success */
+        createSession(foundUser.name);
+        enterApp();
+    } catch(err) {
+        showAuthError('Something went wrong. Please try again.');
+        console.error('Login error:', err);
+    }
+
+    isAuthLoading = false;
+    setAuthLoading('loginBtn', false);
 }
 
 function handleUserBadgeClick() {
@@ -433,7 +552,7 @@ function handleUserBadgeClick() {
         document.getElementById('authOverlay').classList.remove('hidden');
         document.getElementById('loginUser').value = '';
         document.getElementById('loginPass').value = '';
-        document.getElementById('authError').classList.remove('show');
+        clearAuthError();
     }
 }
 
@@ -504,7 +623,6 @@ function renderAdminPanel() {
     if (!onlineHtml) onlineHtml = '<div class="admin-empty">No online users</div>';
     document.getElementById('adminOnlineList').innerHTML = onlineHtml;
 
-    /* FIX #5: Was using b[b].name instead of banned[j].name */
     var bannedHtml = '';
     var bannedList = getBanned();
     if (bannedList.length === 0) {
@@ -525,18 +643,14 @@ function banUser(name) {
     banned.push({ name: name, time: Date.now() });
     saveBanned(banned);
     try { var vc = JSON.parse(localStorage.getItem('ndesanjo_visitors')) || []; vc = vc.filter(function(v) { return !v.name || v.name.toLowerCase() !== name.toLowerCase(); }); localStorage.setItem('ndesanjo_visitors', JSON.stringify(vc)); } catch(e) {}
-    renderAdminPanel();
-    render();
+    renderAdminPanel(); render();
     showToast(name + ' has been banned');
 }
-
 function unbanUser(name) {
     if (!isAdminUser()) return;
     var banned = getBanned();
-    var newBanned = banned.filter(function(b) { return b.name.toLowerCase() !== name.toLowerCase(); });
-    saveBanned(newBanned);
-    renderAdminPanel();
-    render();
+    saveBanned(banned.filter(function(b) { return b.name.toLowerCase() !== name.toLowerCase(); }));
+    renderAdminPanel(); render();
     showToast(name + ' has been unbanned');
 }
 
@@ -548,91 +662,58 @@ function translateTextAsync(text) {
         var key = text.trim().toLowerCase();
         if (currentLang === 'en') return resolve(text);
         if (translationCache[key]) return resolve(translationCache[key]);
-        fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(text) + '&langpair=en|sw')
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                if (data.responseStatus === 200 && data.responseData && data.responseData.translatedText) {
-                    var tr = data.responseData.translatedText;
-                    translationCache[key] = tr;
-                    try { var s = JSON.stringify(translationCache); if (s.length < 2000000) localStorage.setItem('ndesanjo_translations', s); } catch(e) {}
-                    resolve(tr);
-                } else resolve(text);
-            })
-            .catch(function() { resolve(text); });
+        fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(text) + '&langpair=en|sw').then(function(r) { return r.json(); }).then(function(data) {
+            if (data.responseStatus === 200 && data.responseData && data.responseData.translatedText) {
+                var tr = data.responseData.translatedText; translationCache[key] = tr;
+                try { var s = JSON.stringify(translationCache); if (s.length < 2000000) localStorage.setItem('ndesanjo_translations', s); } catch(e) {}
+                resolve(tr);
+            } else resolve(text);
+        }).catch(function() { resolve(text); });
     });
 }
 async function translateAllTexts() {
     if (currentLang === 'en') return;
     var all = [], seen = {};
     for (var i = 0; i < recipes.length; i++) {
-        var r = recipes[i], tk = r.title.toLowerCase();
-        if (!seen[tk]) { seen[tk] = true; all.push(r.title); }
-        for (var j = 0; j < r.ingredients.length; j++) { var ik = r.ingredients[j].toLowerCase(); if (!seen[ik]) { seen[ik] = true; all.push(r.ingredients[j]); } }
-        for (var k = 0; k < r.instructions.length; k++) { var jk = r.instructions[k].toLowerCase(); if (!seen[jk]) { seen[jk] = true; all.push(r.instructions[k]); } }
-        for (var c = 0; c < (r.comments || []).length; c++) { var ct = (r.comments[c].text || '').toLowerCase(); if (ct && !seen[ct]) { seen[ct] = true; all.push(r.comments[c].text); } }
+        var r = recipes[i];
+        if (!seen[r.title.toLowerCase()]) { seen[r.title.toLowerCase()] = true; all.push(r.title); }
+        for (var j = 0; j < r.ingredients.length; j++) { if (!seen[r.ingredients[j].toLowerCase()]) { seen[r.ingredients[j].toLowerCase()] = true; all.push(r.ingredients[j]); } }
+        for (var k = 0; k < r.instructions.length; k++) { if (!seen[r.instructions[k].toLowerCase()]) { seen[r.instructions[k].toLowerCase()] = true; all.push(r.instructions[k]); } }
+        for (var c = 0; c < (r.comments || []).length; c++) { var ct = (r.comments[c].text || ''); if (ct && !seen[ct.toLowerCase()]) { seen[ct.toLowerCase()] = true; all.push(ct); } }
     }
-    for (var b = 0; b < all.length; b += 5) {
-        var batch = all.slice(b, b + 5), promises = [];
-        for (var p = 0; p < batch.length; p++) promises.push(translateTextAsync(batch[p]));
-        await Promise.all(promises);
-    }
+    for (var b = 0; b < all.length; b += 5) { var batch = all.slice(b, b + 5), promises = []; for (var p = 0; p < batch.length; p++) promises.push(translateTextAsync(batch[p])); await Promise.all(promises); }
 }
 function tx(text) { return translateText(text); }
-function txCat(cat) {
-    var m = { Breakfast:{ en:'Breakfast', sw:'Kiamsha Kinywa' }, Lunch:{ en:'Lunch', sw:'Chakula cha Mchana' }, Dinner:{ en:'Dinner', sw:'Chakula cha Jioni' }, Dessert:{ en:'Dessert', sw:'Tamu' } };
-    return (m[cat] && m[cat][currentLang]) || cat;
-}
+function txCat(cat) { var m = { Breakfast:{ en:'Breakfast', sw:'Kiamsha Kinywa' }, Lunch:{ en:'Lunch', sw:'Chakula cha Mchana' }, Dinner:{ en:'Dinner', sw:'Chakula cha Jioni' }, Dessert:{ en:'Dessert', sw:'Tamu' } }; return (m[cat] && m[cat][currentLang]) || cat; }
 
 /* ===== UI STRINGS ===== */
-/* FIX #4: Removed duplicate banned_msg key */
 var ui = {
-    search_placeholder:{ en:'Search recipes...', sw:'Tafuta mapishi...' },
-    fav_title:{ en:'Favorites', sw:'Vipendwa' },
-    saved_label:{ en:'saved', sw:'imehifadhiwa' },
-    grid_tab:{ en:'GRID', sw:'GRIDI' },
-    list_tab:{ en:'LIST', sw:'ORODHA' },
-    all_recipes:{ en:'All Recipes', sw:'Mapishi Yote' },
-    favorites_view:{ en:'Favorites', sw:'Vipendwa' },
-    recipe_label:{ en:'recipe', sw:'mapishi' },
-    recipes_label:{ en:'recipes', sw:'mapishi' },
-    new_recipe:{ en:'New Recipe', sw:'Mapishi Mpya' },
-    recipe_name:{ en:'Recipe Name', sw:'Jina la Mapishi' },
-    name_placeholder:{ en:'What are you cooking?', sw:'Unapika nini?' },
-    category:{ en:'Category', sw:'Kundi' },
+    search_placeholder:{ en:'Search recipes...', sw:'Tafuta mapishi...' }, fav_title:{ en:'Favorites', sw:'Vipendwa' },
+    saved_label:{ en:'saved', sw:'imehifadhiwa' }, grid_tab:{ en:'GRID', sw:'GRIDI' }, list_tab:{ en:'LIST', sw:'ORODHA' },
+    all_recipes:{ en:'All Recipes', sw:'Mapishi Yote' }, favorites_view:{ en:'Favorites', sw:'Vipendwa' },
+    recipe_label:{ en:'recipe', sw:'mapishi' }, recipes_label:{ en:'recipes', sw:'mapishi' },
+    new_recipe:{ en:'New Recipe', sw:'Mapishi Mpya' }, recipe_name:{ en:'Recipe Name', sw:'Jina la Mapishi' },
+    name_placeholder:{ en:'What are you cooking?', sw:'Unapika nini?' }, category:{ en:'Category', sw:'Kundi' },
     ingredients_label:{ en:'Ingredients (one per line)', sw:'Viungo (moja kwa kila mstari)' },
     instructions_label:{ en:'Instructions (one per line)', sw:'Maelekezo (moja kwa kila mstari)' },
-    photo:{ en:'Photo', sw:'Picha' },
-    tap_upload:{ en:'Tap to add a photo', sw:'Bonyeza kuongeza picha' },
-    save_recipe:{ en:'Save Recipe', sw:'Hifadhi Mapishi' },
-    update_recipe:{ en:'Update Recipe', sw:'Bosha Mapishi' },
-    posted_by:{ en:'Posted by', sw:'Imewekwa na' },
-    ndesanjo_family:{ en:'Ndesanjo Family', sw:'Familia ya Ndesanjo' },
-    ingredients_title:{ en:'Ingredients', sw:'Viungo' },
-    instructions_title:{ en:'Instructions', sw:'Maelekezo' },
-    comments_title:{ en:'Comments', sw:'Maoni' },
-    comment_placeholder:{ en:'Add a comment...', sw:'Ongeza maoni...' },
+    photo:{ en:'Photo', sw:'Picha' }, tap_upload:{ en:'Tap to add a photo', sw:'Bonyeza kuongeza picha' },
+    save_recipe:{ en:'Save Recipe', sw:'Hifadhi Mapishi' }, update_recipe:{ en:'Update Recipe', sw:'Bosha Mapishi' },
+    posted_by:{ en:'Posted by', sw:'Imewekwa na' }, ndesanjo_family:{ en:'Ndesanjo Family', sw:'Familia ya Ndesanjo' },
+    ingredients_title:{ en:'Ingredients', sw:'Viungo' }, instructions_title:{ en:'Instructions', sw:'Maelekezo' },
+    comments_title:{ en:'Comments', sw:'Maoni' }, comment_placeholder:{ en:'Add a comment...', sw:'Ongeza maoni...' },
     added_fav:{ en:'Added to favorites', sw:'Imeongezwa kwenye vipendwa' },
     removed_fav:{ en:'Removed from favorites', sw:'Imeondolewa kwenye vipendwa' },
-    deleted:{ en:'Recipe deleted', sw:'Mapishi yamefutwa' },
-    saved_msg:{ en:'Recipe saved', sw:'Mapishi yamehifadhiwa' },
+    deleted:{ en:'Recipe deleted', sw:'Mapishi yamefutwa' }, saved_msg:{ en:'Recipe saved', sw:'Mapishi yamehifadhiwa' },
     updated_msg:{ en:'Recipe updated', sw:'Mapishi yameboshewa' },
     empty_title:{ en:'No recipes found', sw:'Hakuna mapishi yaliyopatikana' },
     empty_sub:{ en:'Tap + to add your first recipe', sw:'Bonyeza + kuongeza mapishi yako ya kwanza' },
-    saved_indicator:{ en:'Saved', sw:'Imehifadhiwa' },
-    confirm_delete:{ en:'Delete this recipe?', sw:'Futa mapishi hii?' },
-    storage_full:{ en:'Storage full.', sw:'Hifadhi imejaa.' },
-    translating:{ en:'Translating...', sw:'Inatafsiri...' },
-    views:{ en:'views', sw:'mara kuangaliwa' },
-    likes:{ en:'likes', sw:'mapendano' },
-    comments_count:{ en:'comments', sw:'maoni' },
-    story_all:{ en:'All', sw:'Yote' },
-    story_favorites:{ en:'Favorites', sw:'Vipendwa' },
-    story_breakfast:{ en:'Breakfast', sw:'Kiamsha Kinywa' },
-    story_lunch:{ en:'Lunch', sw:'Chakula Mchana' },
-    story_dinner:{ en:'Dinner', sw:'Chakula Jioni' },
-    story_dessert:{ en:'Dessert', sw:'Tamu' },
-    banned_account:{ en:'This account has been suspended', sw:'Akaunti hii imefungwa' },
-    logout_confirm:{ en:'Logout', sw:'Ondoka' }
+    saved_indicator:{ en:'Saved', sw:'Imehifadhiwa' }, confirm_delete:{ en:'Delete this recipe?', sw:'Futa mapishi hii?' },
+    storage_full:{ en:'Storage full.', sw:'Hifadhi imejaa.' }, translating:{ en:'Translating...', sw:'Inatafsiri...' },
+    views:{ en:'views', sw:'mara kuangaliwa' }, likes:{ en:'likes', sw:'mapendano' },
+    comments_count:{ en:'comments', sw:'maoni' }, story_all:{ en:'All', sw:'Yote' },
+    story_favorites:{ en:'Favorites', sw:'Vipendwa' }, story_breakfast:{ en:'Breakfast', sw:'Kiamsha Kinywa' },
+    story_lunch:{ en:'Lunch', sw:'Chakula Mchana' }, story_dinner:{ en:'Dinner', sw:'Chakula Jioni' },
+    story_dessert:{ en:'Dessert', sw:'Tamu' }
 };
 function t(key) { return ui[key] ? (ui[key][currentLang] || ui[key].en) : key; }
 
@@ -643,26 +724,20 @@ function showSaveIndicator() { var el = document.getElementById('saveIndicator')
 /* ===== LANGUAGE TOGGLE ===== */
 var isTranslating = false;
 async function toggleLang() {
-    if (isTranslating) return;
-    isTranslating = true;
+    if (isTranslating) return; isTranslating = true;
     currentLang = currentLang === 'en' ? 'sw' : 'en';
     document.getElementById('langLabel').textContent = currentLang === 'en' ? 'SW' : 'EN';
     try { localStorage.setItem('ndesanjo_lang', currentLang); } catch(e) {}
-    updateUIStrings();
-    renderStories();
+    updateUIStrings(); renderStories();
     if (currentLang === 'sw') {
         document.getElementById('langLoadingText').textContent = t('translating');
         document.getElementById('langLoading').classList.add('show');
-        document.getElementById('langBtn').style.opacity = '0.5';
-        document.getElementById('langBtn').style.pointerEvents = 'none';
+        document.getElementById('langBtn').style.opacity = '0.5'; document.getElementById('langBtn').style.pointerEvents = 'none';
         try { await translateAllTexts(); } catch(e) {}
         document.getElementById('langLoading').classList.remove('show');
-        document.getElementById('langBtn').style.opacity = '';
-        document.getElementById('langBtn').style.pointerEvents = '';
+        document.getElementById('langBtn').style.opacity = ''; document.getElementById('langBtn').style.pointerEvents = '';
     }
-    render();
-    if (viewingIndex >= 0) openView(viewingIndex);
-    isTranslating = false;
+    render(); if (viewingIndex >= 0) openView(viewingIndex); isTranslating = false;
 }
 
 function updateUIStrings() {
@@ -682,43 +757,33 @@ function updateUIStrings() {
     document.getElementById('lblAuthor').textContent = t('posted_by');
     document.getElementById('fAuthor').value = currentUser || '';
     document.getElementById('submitBtn').textContent = document.getElementById('editIndex').value === '' ? t('save_recipe') : t('update_recipe');
-    /* FIX #8: Translate category select options */
     var sel = document.getElementById('fCategory'), sv = sel.value;
     for (var i = 0; i < sel.options.length; i++) sel.options[i].textContent = txCat(catValues[i]);
     sel.value = sv;
 }
-
-function getViewTitle() { var m = { all:'all_recipes', Favorites:'favorites_view', Breakfast:'all_recipes', Lunch:'all_recipes', Dinner:'all_recipes', Dessert:'all_recipes' }; return t(m[currentView] || 'all_recipes'); }
+function getViewTitle() { return t('all_recipes'); }
 
 function renderStories() {
     var cats = ['all', 'Favorites', 'Breakfast', 'Lunch', 'Dinner', 'Dessert'];
     var lk = ['story_all', 'story_favorites', 'story_breakfast', 'story_lunch', 'story_dinner', 'story_dessert'];
     var h = '';
-    for (var i = 0; i < cats.length; i++) {
-        var a = currentView === cats[i] ? ' active' : '';
-        h += '<div class="story' + a + '" onclick="setView(\'' + cats[i] + '\')"><div class="story-ring"><div class="story-ring-inner">' + categoryIcons[cats[i]] + '</div></div><div class="story-label">' + t(lk[i]) + '</div></div>';
-    }
+    for (var i = 0; i < cats.length; i++) { var a = currentView === cats[i] ? ' active' : ''; h += '<div class="story' + a + '" onclick="setView(\'' + cats[i] + '\')"><div class="story-ring"><div class="story-ring-inner">' + categoryIcons[cats[i]] + '</div></div><div class="story-label">' + t(lk[i]) + '</div></div>'; }
     document.getElementById('stories').innerHTML = h;
 }
-
 function setView(v) { currentView = v; document.getElementById('sectionTitle').textContent = getViewTitle(); renderStories(); render(); }
 function setTab(tab, el) { currentTab = tab; var tabs = document.querySelectorAll('.tab'); for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active'); el.classList.add('active'); render(); }
 
-/* ===== FILTERING ===== */
 function getFiltered() {
     var q = document.getElementById('search').value.toLowerCase().trim(), res = [];
-    var banned = getBanned();
-    var bannedNames = {};
+    var banned = getBanned(), bannedNames = {};
     for (var bi = 0; bi < banned.length; bi++) bannedNames[banned[bi].name.toLowerCase()] = true;
     for (var i = 0; i < recipes.length; i++) {
         var r = recipes[i];
-        var en = r.title.toLowerCase(), sw = tx(r.title).toLowerCase();
-        if (q && en.indexOf(q) === -1 && sw.indexOf(q) === -1) continue;
+        if (q && r.title.toLowerCase().indexOf(q) === -1 && tx(r.title).toLowerCase().indexOf(q) === -1) continue;
         if (currentView === 'Favorites' && !r.fav) continue;
         if (currentView !== 'all' && currentView !== 'Favorites' && r.category !== currentView) continue;
         if (!isAdminUser() && r.ownerId && bannedNames[r.ownerId]) continue;
-        var c = {}; for (var k in r) c[k] = r[k]; c._i = i;
-        res.push(c);
+        var c = {}; for (var k in r) c[k] = r[k]; c._i = i; res.push(c);
     }
     return res;
 }
@@ -727,8 +792,6 @@ function render() {
     var filtered = getFiltered();
     var rl = filtered.length === 1 ? t('recipe_label') : t('recipes_label');
     document.getElementById('sectionCount').textContent = filtered.length + ' ' + rl;
-
-    /* Favorites row */
     var favs = [];
     for (var f = 0; f < recipes.length; f++) { if (recipes[f].fav) favs.push({ r: recipes[f], idx: f }); }
     var fs = document.getElementById('favSection');
@@ -743,13 +806,8 @@ function render() {
         }
         document.getElementById('favRow').innerHTML = fh;
     } else { fs.style.display = 'none'; }
-
     var main = document.getElementById('mainContent');
-    if (filtered.length === 0) {
-        main.innerHTML = '<div class="empty-state"><i class="fa-solid fa-bowl-rice"></i><p>' + t('empty_title') + '</p><span>' + t('empty_sub') + '</span></div>';
-        return;
-    }
-
+    if (filtered.length === 0) { main.innerHTML = '<div class="empty-state"><i class="fa-solid fa-bowl-rice"></i><p>' + t('empty_title') + '</p><span>' + t('empty_sub') + '</span></div>'; return; }
     if (currentTab === 'grid') {
         var gh = '<div class="recipe-grid">';
         for (var gi = 0; gi < filtered.length; gi++) {
@@ -757,15 +815,14 @@ function render() {
             var gimg = gr.image ? '<img src="' + gr.image + '" loading="lazy">' : '<div class="grid-placeholder"><i class="fa-solid fa-utensils"></i>' + tx(gr.title) + '</div>';
             gh += '<div class="grid-item" onclick="openView(' + gr._i + ')">' + gimg + '<div class="grid-overlay"><div class="grid-stat"><i class="fa-solid fa-eye"></i>' + formatNum(gr.views || 0) + '</div><div class="grid-stat"><i class="fa-solid fa-heart"></i>' + formatNum(gr.likes || 0) + '</div><div class="grid-stat"><i class="fa-solid fa-comment"></i>' + formatNum((gr.comments || []).length) + '</div></div></div>';
         }
-        gh += '</div>';
-        main.innerHTML = gh;
+        gh += '</div>'; main.innerHTML = gh;
     } else {
         var lh = '';
         for (var li = 0; li < filtered.length; li++) {
             var lr = filtered[li];
             var lt = lr.image ? '<img class="list-thumb" src="' + lr.image + '" loading="lazy">' : '<div class="list-thumb-placeholder">' + getCatEmoji(lr.category) + '</div>';
             var ling = '';
-            for (var lii = 0; lii < Math.min(3, lr.ingredients.length; lii++) { if (lii > 0) ling += ', '; ling += tx(lr.ingredients[lii]); }
+            for (var lii = 0; lii < Math.min(3, lr.ingredients.length); lii++) { if (lii > 0) ling += ', '; ling += tx(lr.ingredients[lii]); }
             if (lr.ingredients.length > 3) ling += ' ...';
             lh += '<div class="list-card" onclick="openView(' + lr._i + ')"><div class="list-inner">' + lt + '<div class="list-body"><div class="list-title">' + tx(lr.title) + '</div><div class="list-cat">' + txCat(lr.category) + '</div><div class="list-desc">' + ling + '</div><div class="list-stats"><span><i class="fa-solid fa-eye"></i>' + formatNum(lr.views || 0) + '</span><span><i class="fa-solid fa-heart"></i>' + formatNum(lr.likes || 0) + '</span><span><i class="fa-solid fa-comment"></i>' + formatNum((lr.comments || []).length) + '</span></div></div></div></div>';
         }
@@ -775,197 +832,94 @@ function render() {
 
 /* ===== VIEW MODAL ===== */
 function openView(i) {
-    viewingIndex = i;
-    var r = recipes[i];
-    if (!r) return;
-    if (!r.views) r.views = 0;
-    r.views++;
-    save();
-
+    viewingIndex = i; var r = recipes[i]; if (!r) return;
+    if (!r.views) r.views = 0; r.views++; save();
     document.getElementById('modalAvatar').textContent = getCatEmoji(r.category);
     document.getElementById('modalCat').textContent = txCat(r.category);
     document.getElementById('modalUser').textContent = r.author || t('ndesanjo_family');
     document.getElementById('modalImage').innerHTML = r.image ? '<img src="' + r.image + '">' : '<div class="modal-image-placeholder">' + getCatEmoji(r.category) + '</div>';
-
-    var ih = '';
-    for (var ii = 0; ii < r.ingredients.length; ii++) ih += '<li><span class="ing-dot"></span>' + tx(r.ingredients[ii]) + '</li>';
-    var jh = '';
-    for (var ij = 0; ij < r.instructions.length; ij++) jh += '<li>' + tx(r.instructions[ij]) + '</li>';
-
+    var ih = ''; for (var ii = 0; ii < r.ingredients.length; ii++) ih += '<li><span class="ing-dot"></span>' + tx(r.ingredients[ii]) + '</li>';
+    var jh = ''; for (var ij = 0; ij < r.instructions.length; ij++) jh += '<li>' + tx(r.instructions[ij]) + '</li>';
     document.getElementById('modalBody').innerHTML = '<div class="modal-title">' + tx(r.title) + '</div><div class="modal-section-label">' + t('ingredients_title') + '</div><ul class="modal-ingredients">' + ih + '</ul><div class="modal-section-label">' + t('instructions_title') + '</div><ol class="modal-instructions">' + jh + '</ol>';
-
     document.getElementById('modalStats').innerHTML = '<span><i class="fa-solid fa-eye"></i> ' + formatNum(r.views) + ' ' + t('views') + '</span><span><i class="fa-solid fa-heart"></i> ' + formatNum(r.likes || 0) + ' ' + t('likes') + '</span><span><i class="fa-solid fa-comment"></i> ' + formatNum((r.comments || []).length) + ' ' + t('comments_count') + '</span>';
-
-    var isOwner = r.ownerId && r.ownerId === currentUser;
-    var isAdm = isAdminUser();
+    var isOwner = r.ownerId && r.ownerId === currentUser, isAdm = isAdminUser();
     var hc = r.fav ? ' liked' : '', hi = r.fav ? 'fa-solid' : 'fa-regular';
     var fh = '<button class="modal-action-btn' + hc + '" onclick="toggleFav(' + i + ')" aria-label="Favorite"><i class="' + hi + ' fa-heart"></i></button>';
-    if (isOwner || isAdm) {
-        fh += '<button class="modal-action-btn" onclick="editRecipe(' + i + ')" aria-label="Edit"><i class="fa-regular fa-pen-to-square"></i></button><span class="modal-action-spacer"></span><button class="modal-action-btn delete-btn" onclick="deleteRecipe(' + i + ')" aria-label="Delete"><i class="fa-regular fa-trash-can"></i></button>';
-    } else {
-        fh += '<span class="modal-action-spacer"></span>';
-    }
+    if (isOwner || isAdm) fh += '<button class="modal-action-btn" onclick="editRecipe(' + i + ')" aria-label="Edit"><i class="fa-regular fa-pen-to-square"></i></button><span class="modal-action-spacer"></span><button class="modal-action-btn delete-btn" onclick="deleteRecipe(' + i + ')" aria-label="Delete"><i class="fa-regular fa-trash-can"></i></button>';
+    else fh += '<span class="modal-action-spacer"></span>';
     document.getElementById('modalFooter').innerHTML = fh;
     renderComments(i);
-
-    document.getElementById('viewModal').classList.add('show');
-    document.body.style.overflow = 'hidden';
+    document.getElementById('viewModal').classList.add('show'); document.body.style.overflow = 'hidden';
 }
 
-/* FIX #7: Clean emoji list without garbled characters */
-var EMOJI_LIST = ['😀','😃','😄','😁','😆','😅','🤣','😂','🙂','😉','😊','😇','🥰','😍','🤩','😘','😗','😚','😙','🥲','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','🤐','🤨','😐','😑','😶','😏','😒','🙄','😬','😌','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🥴','😵','🤯','🤠','🥳','😎','🤓','🧐','😕','😟','🙁','☹️','😮','😯','😲','😳','🥺','🥹','😦','😧','😨','😰','😥','😢','😭','😱','😖','😣','😞','😓','😩','😫','🥱','😤','😡','😠','🤬','👍','👎','👏','🙌','🤝','🙏','✍️','💪','🔥','❤️','💕','💖','💗','💔','💯','✨','🎉','🎊','🌟','⭐','🍳','🍰','🧁','🍫','☕','🍷','🍺'];
+var EMOJI_LIST = ['\u{1F600}','\u{1F603}','\u{1F604}','\u{1F601}','\u{1F606}','\u{1F605}','\u{1F923}','\u{1F602}','\u{1F642}','\u{1F609}','\u{1F60A}','\u{1F607}','\u{1F970}','\u{1F60D}','\u{1F929}','\u{1F618}','\u{1F617}','\u{1F61A}','\u{1F619}','\u{1F972}','\u{1F60B}','\u{1F61B}','\u{1F61C}','\u{1F92A}','\u{1F61D}','\u{1F911}','\u{1F917}','\u{1F92D}','\u{1F92B}','\u{1F914}','\u{1F910}','\u{1F928}','\u{1F610}','\u{1F611}','\u{1F636}','\u{1F60F}','\u{1F612}','\u{1F644}','\u{1F62C}','\u{1F60C}','\u{1F614}','\u{1F62A}','\u{1F924}','\u{1F634}','\u{1F637}','\u{1F912}','\u{1F915}','\u{1F922}','\u{1F92E}','\u{1F927}','\u{1F975}','\u{1F976}','\u{1F973}','\u{1F60E}','\u{1F913}','\u{1F9D0}','\u{1F615}','\u{1F61F}','\u{1F641}','\u{2639}\uFE0F','\u{1F62E}','\u{1F62F}','\u{1F633}','\u{1F63F}','\u{1F626}','\u{1F627}','\u{1F628}','\u{1F630}','\u{1F625}','\u{1F622}','\u{1F62D}','\u{1F631}','\u{1F616}','\u{1F623}','\u{1F61E}','\u{1F613}','\u{1F629}','\u{1F62B}','\u{1F971}','\u{1F624}','\u{1F621}','\u{1F620}','\u{1F92C}','\u{1F44D}','\u{1F44E}','\u{1F44F}','\u{1F64C}','\u{1F91D}','\u{1F64F}','\u{270D}\uFE0F','\u{1F4AA}','\u{1F525}','\u2764}\uFE0F','\u{1F495}','\u{1F496}','\u{1F497}','\u{1F494}','\u{1F4AF}','\u{2728}','\u{1F389}','\u{1F38A}','\u{1F31F}','\u{2B50}','\u{1F373}','\u{1F370}','\u{1F381}','\u{1F36B}','\u{2615}','\u{1F377}','\u{1F37A}'];
 
 function renderComments(i) {
-    var r = recipes[i];
-    if (!r) return;
-    if (!r.comments) r.comments = [];
-    var sec = document.getElementById('commentsSection');
-    var listHtml = '';
-    if (r.comments.length === 0) {
-        listHtml = '<div class="no-comments">' + t('comment_placeholder') + '</div>';
-    } else {
-        for (var c = 0; c < r.comments.length; c++) {
-            var cm = r.comments[c];
-            var initial = cm.name ? cm.name.charAt(0).toUpperCase() : '?';
-            listHtml += '<div class="comment-item"><div class="comment-avatar">' + escHtml(initial) + '</div><div class="comment-body"><div class="comment-name">' + escHtml(cm.name) + '</div><div class="comment-text">' + escHtml(cm.text) + '</div><div class="comment-time">' + timeAgo(cm.time) + '</div></div></div>';
-        }
-    }
-
+    var r = recipes[i]; if (!r) return; if (!r.comments) r.comments = [];
+    var sec = document.getElementById('commentsSection'), listHtml = '';
+    if (r.comments.length === 0) { listHtml = '<div class="no-comments">' + t('comment_placeholder') + '</div>'; }
+    else { for (var c = 0; c < r.comments.length; c++) { var cm = r.comments[c]; listHtml += '<div class="comment-item"><div class="comment-avatar">' + escHtml(cm.name ? cm.name.charAt(0).toUpperCase() : '?') + '</div><div class="comment-body"><div class="comment-name">' + escHtml(cm.name) + '</div><div class="comment-text">' + escHtml(cm.text) + '</div><div class="comment-time">' + timeAgo(cm.time) + '</div></div></div>'; } }
     var egHtml = '';
     for (var e = 0; e < EMOJI_LIST.length; e++) egHtml += '<span onclick="insertEmoji(\'' + EMOJI_LIST[e] + '\')">' + EMOJI_LIST[e] + '</span>';
-
     sec.innerHTML = '<div class="modal-section-label">' + t('comments_title') + '</div><div class="comments-list" id="commentsList">' + listHtml + '</div><div class="comment-input-wrap"><textarea class="comment-input" id="commentInput" placeholder="' + t('comment_placeholder') + '"></textarea><button class="emoji-btn" onclick="toggleEmojiPicker()" type="button"><i class="fa-regular fa-face-smile"></i></button><div class="emoji-picker" id="emojiPicker"><div class="emoji-grid" id="emojiGrid">' + egHtml + '</div></div><button class="comment-send" onclick="postComment(' + i + ')" type="button"><i class="fa-solid fa-paper-plane"></i></button></div>';
 }
-
 function toggleEmojiPicker() { document.getElementById('emojiPicker').classList.toggle('show'); }
 function insertEmoji(em) { var inp = document.getElementById('commentInput'); inp.value += em; inp.focus(); }
-function postComment(i) {
-    var inp = document.getElementById('commentInput'), text = inp.value.trim();
-    if (!text || !currentUser) return;
-    var r = recipes[i];
-    if (!r.comments) r.comments = [];
-    r.comments.unshift({ name: currentUser, text: text, time: Date.now(), userId: currentUser });
-    save();
-    renderComments(i);
-    inp.value = '';
-}
+function postComment(i) { var inp = document.getElementById('commentInput'), text = inp.value.trim(); if (!text || !currentUser) return; var r = recipes[i]; if (!r.comments) r.comments = []; r.comments.unshift({ name: currentUser, text: text, time: Date.now(), userId: currentUser }); save(); renderComments(i); inp.value = ''; }
 function closeView(e) { if (e.target === e.currentTarget) closeViewForce(); }
 function closeViewForce() { document.getElementById('viewModal').classList.remove('show'); document.body.style.overflow = ''; viewingIndex = -1; }
-function toggleFav(i) {
-    recipes[i].fav = !recipes[i].fav;
-    save(); render();
-    var btn = document.querySelector('.modal-action-btn:first-child'), icon = btn.querySelector('i');
-    if (recipes[i].fav) { btn.classList.add('liked'); icon.className = 'fa-solid fa-heart'; showToast(t('added_fav')); }
-    else { btn.classList.remove('liked'); icon.className = 'fa-regular fa-heart'; showToast(t('removed_fav')); }
-}
+function toggleFav(i) { recipes[i].fav = !recipes[i].fav; save(); render(); var btn = document.querySelector('.modal-action-btn:first-child'), icon = btn.querySelector('i'); if (recipes[i].fav) { btn.classList.add('liked'); icon.className = 'fa-solid fa-heart'; showToast(t('added_fav')); } else { btn.classList.remove('liked'); icon.className = 'fa-regular fa-heart'; showToast(t('removed_fav')); } }
 function deleteRecipe(i) { if (!confirm(t('confirm_delete'))) return; recipes.splice(i, 1); save(); closeViewForce(); render(); showToast(t('deleted')); }
 
 function openAdd() {
-    document.getElementById('editIndex').value = '';
-    document.getElementById('addForm').reset();
-    document.getElementById('imgPreview').style.display = 'none';
-    document.getElementById('fAuthor').value = currentUser || '';
-    updateUIStrings();
-    document.getElementById('addModal').classList.add('show');
-    document.body.style.overflow = 'hidden';
+    document.getElementById('editIndex').value = ''; document.getElementById('addForm').reset();
+    document.getElementById('imgPreview').style.display = 'none'; document.getElementById('fAuthor').value = currentUser || '';
+    updateUIStrings(); document.getElementById('addModal').classList.add('show'); document.body.style.overflow = 'hidden';
     setTimeout(function() { document.getElementById('fTitle').focus(); }, 350);
 }
 function editRecipe(i) {
-    closeViewForce();
-    var r = recipes[i];
-    document.getElementById('editIndex').value = i;
-    document.getElementById('fTitle').value = r.title;
+    closeViewForce(); var r = recipes[i];
+    document.getElementById('editIndex').value = i; document.getElementById('fTitle').value = r.title;
     document.getElementById('fCategory').value = r.category;
     document.getElementById('fIngredients').value = r.ingredients.join('\n');
     document.getElementById('fInstructions').value = r.instructions.join('\n');
     document.getElementById('fAuthor').value = r.author || '';
     if (r.image) { document.getElementById('imgPreview').src = r.image; document.getElementById('imgPreview').style.display = 'block'; }
     else { document.getElementById('imgPreview').style.display = 'none'; }
-    updateUIStrings();
-    document.getElementById('submitBtn').textContent = t('update_recipe');
-    document.getElementById('addModal').classList.add('show');
-    document.body.style.overflow = 'hidden';
+    updateUIStrings(); document.getElementById('submitBtn').textContent = t('update_recipe');
+    document.getElementById('addModal').classList.add('show'); document.body.style.overflow = 'hidden';
 }
 function closeAdd(e) { if (e.target === e.currentTarget) closeAddForce(); }
 function closeAddForce() { document.getElementById('addModal').classList.remove('show'); document.body.style.overflow = ''; }
 function previewImage(input) { var prev = document.getElementById('imgPreview'); if (input.files && input.files[0]) { var reader = new FileReader(); reader.onload = function(e) { prev.src = e.target.result; prev.style.display = 'block'; }; reader.readAsDataURL(input.files[0]); } }
 
 function saveRecipe(e) {
-    e.preventDefault();
-    var idx = document.getElementById('editIndex').value;
-    var fi = document.getElementById('fImage'), file = fi.files[0];
-    var prev = document.getElementById('imgPreview');
+    e.preventDefault(); var idx = document.getElementById('editIndex').value;
+    var fi = document.getElementById('fImage'), file = fi.files[0], prev = document.getElementById('imgPreview');
     var finish = function(img) {
-        var ir = document.getElementById('fIngredients').value.split('\n');
-        var jr = document.getElementById('fInstructions').value.split('\n');
-        var ci = [], cj = [];
+        var ir = document.getElementById('fIngredients').value.split('\n'), jr = document.getElementById('fInstructions').value.split('\n'), ci = [], cj = [];
         for (var a = 0; a < ir.length; a++) { var v = ir[a].trim(); if (v) ci.push(v); }
         for (var b = 0; b < jr.length; b++) { var w = jr[b].trim(); if (w) cj.push(w); }
-        var data = {
-            title: document.getElementById('fTitle').value.trim(),
-            category: document.getElementById('fCategory').value,
-            ingredients: ci, instructions: cj,
-            image: img || '',
-            author: currentUser || 'Guest',
-            ownerId: idx !== '' ? (recipes[parseInt(idx)].ownerId || '') : currentUser,
-            views: idx !== '' ? (recipes[parseInt(idx)].views || 0) : 0,
-            likes: idx !== '' ? (recipes[parseInt(idx)].likes || 0) : 0,
-            fav: idx !== '' ? recipes[parseInt(idx)].fav : false,
-            comments: idx !== '' ? (recipes[parseInt(idx)].comments || []) : []
-        };
-        if (idx === '') { recipes.push(data); showToast(t('saved_msg')); }
-        else { recipes[parseInt(idx)] = data; showToast(t('updated_msg')); }
-        if (currentLang === 'sw') {
-            delete translationCache[data.title.toLowerCase()];
-            try { localStorage.setItem('ndesanjo_translations', JSON.stringify(translationCache)); } catch(e) {}
-            translateAllTexts().then(function() { render(); });
-        }
-        save();
-        closeAddForce();
-        render();
+        var data = { title: document.getElementById('fTitle').value.trim(), category: document.getElementById('fCategory').value, ingredients: ci, instructions: cj, image: img || '', author: currentUser || 'Guest', ownerId: idx !== '' ? (recipes[parseInt(idx)].ownerId || '') : currentUser, views: idx !== '' ? (recipes[parseInt(idx)].views || 0) : 0, likes: idx !== '' ? (recipes[parseInt(idx)].likes || 0) : 0, fav: idx !== '' ? recipes[parseInt(idx)].fav : false, comments: idx !== '' ? (recipes[parseInt(idx)].comments || []) : [] };
+        if (idx === '') { recipes.push(data); showToast(t('saved_msg')); } else { recipes[parseInt(idx)] = data; showToast(t('updated_msg')); }
+        if (currentLang === 'sw') { delete translationCache[data.title.toLowerCase()]; try { localStorage.setItem('ndesanjo_translations', JSON.stringify(translationCache)); } catch(e) {} translateAllTexts().then(function() { render(); }); }
+        save(); closeAddForce(); render();
     };
-    if (file) {
-        var reader = new FileReader();
-        reader.onload = function(ev) { finish(ev.target.result); };
-        reader.readAsDataURL(file);
-    } else {
-        var ex = idx !== '' ? recipes[parseInt(idx)].image : '';
-        var ps = (prev.style.display !== 'none') ? prev.src : '';
-        finish(ps || ex);
-    }
+    if (file) { var reader = new FileReader(); reader.onload = function(ev) { finish(ev.target.result); }; reader.readAsDataURL(file); }
+    else { var ex = idx !== '' ? recipes[parseInt(idx)].image : ''; var ps = (prev.style.display !== 'none') ? prev.src : ''; finish(ps || ex); }
 }
 
-function toggleDark() {
-    document.body.classList.toggle('dark');
-    var d = document.body.classList.contains('dark');
-    document.getElementById('darkBtn').innerHTML = d ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
-    try { localStorage.setItem('ndesanjo_dark', d); } catch(e) {}
-}
-if (localStorage.getItem('ndesanjo_dark') === 'true') {
-    document.body.classList.add('dark');
-    document.getElementById('darkBtn').innerHTML = '<i class="fa-solid fa-sun"></i>';
-}
+function toggleDark() { document.body.classList.toggle('dark'); var d = document.body.classList.contains('dark'); document.getElementById('darkBtn').innerHTML = d ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>'; try { localStorage.setItem('ndesanjo_dark', d); } catch(e) {} }
+if (localStorage.getItem('ndesanjo_dark') === 'true') { document.body.classList.add('dark'); document.getElementById('darkBtn').innerHTML = '<i class="fa-solid fa-sun"></i>'; }
 
 var toastTimer = null;
 function showToast(msg) { var el = document.getElementById('toast'); el.textContent = msg; el.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(function() { el.classList.remove('show'); }, 2200); }
 
-/* ===== KEYBOARD & TOUCH ===== */
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        if (document.getElementById('addModal').classList.contains('show')) closeAddForce();
-        else if (document.getElementById('viewModal').classList.contains('show')) closeViewForce();
-    }
-});
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { if (document.getElementById('addModal').classList.contains('show')) closeAddForce(); else if (document.getElementById('viewModal').classList.contains('show')) closeViewForce(); } });
 document.addEventListener('touchstart', function(e) { var it = e.target.closest('.grid-item'); if (it) it.classList.add('touched'); }, { passive: true });
 document.addEventListener('touchend', function() { var its = document.querySelectorAll('.grid-item.touched'); for (var i = 0; i < its.length; i++) its[i].classList.remove('touched'); }, { passive: true });
-document.addEventListener('click', function(e) {
-    if (!e.target.closest('.emoji-picker') && !e.target.closest('.emoji-btn')) {
-        var ep = document.getElementById('emojiPicker');
-        if (ep) ep.classList.remove('show');
-    }
-});
+document.addEventListener('click', function(e) { if (!e.target.closest('.emoji-picker') && !e.target.closest('.emoji-btn')) { var ep = document.getElementById('emojiPicker'); if (ep) ep.classList.remove('show'); } });
 
-/* ===== SEED DATA ===== */
 function seedData() {
     recipes = [
         { title:"Mandazi with Chai", category:"Breakfast", ingredients:["3 cups all-purpose flour","1/2 cup sugar","1 tsp cardamom","2 eggs","1/2 cup warm milk","Oil for frying"], instructions:["Mix flour, sugar, and cardamom in a large bowl","Beat eggs and add to the dry mixture","Gradually add warm milk and knead into soft dough","Let rest for 30 minutes covered","Roll out and cut into triangles","Deep fry in hot oil until golden brown","Serve with hot spiced chai"], image:"https://picsum.photos/seed/mandazi22/600/600.jpg", author:"000Ndesanjo", ownerId:"000Ndesanjo", views:47, likes:12, fav:true, comments:[{name:"Amina",text:"My family loves this!",time:Date.now()-3600000,userId:"amina"},{name:"Juma",text:"Best mandazi recipe I have tried",time:Date.now()-86400000,userId:"juma"}] },
@@ -981,11 +935,21 @@ function seedData() {
 /* ===== INIT ===== */
 if (recipes.length === 0) seedData();
 document.getElementById('langLabel').textContent = currentLang === 'en' ? 'SW' : 'EN';
-if (checkSession()) {
-    var session;
-    try { session = JSON.parse(localStorage.getItem('ndesanjo_session')); } catch(e) { session = null; }
-    if (session && session.name) { currentUser = session.name; enterApp(); }
-}
+if (localStorage.getItem('ndesanjo_dark') === 'true') { document.body.classList.add('dark'); document.getElementById('darkBtn').innerHTML = '<i class="fa-solid fa-sun"></i>'; }
+
+/* Restore session safely */
+(function() {
+    try {
+        var session = JSON.parse(localStorage.getItem('ndesanjo_session'));
+        if (session && session.name) {
+            currentUser = session.name;
+            enterApp();
+        }
+    } catch(e) {
+        /* Corrupted session data — clear it */
+        try { localStorage.removeItem('ndesanjo_session'); } catch(e2) {}
+    }
+})();
 updateVisitorCount();
 </script>
 
